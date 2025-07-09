@@ -1,9 +1,9 @@
-````markdown
+
 # Flask Backend – Developer Notes
 
 This project uses Flask as the backend framework.
 
----
+
 
 ## ⚙️ Working on the Project
 
