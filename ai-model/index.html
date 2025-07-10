@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Failure Predictor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f4f4f4;
+    }
+    button {
+      padding: 10px;
+      margin: 1rem 0;
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔎 LSTM System Failure Predictor (Live)</h2>
+  <button onclick="submitLiveData()">Predict from Live System</button>
+  <div id="result">Waiting for prediction...</div>
+
+  <script>
+    async function submitLiveData() {
+      try {
+        const liveRes = await fetch("http://127.0.0.1:5000/live-sequence");
+        const liveJson = await liveRes.json();
+        if (!liveJson.sequence) {
+          document.getElementById("result").innerText = "Failed to fetch system data.";
+          return;
+        }
+
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sequence: liveJson.sequence })
+        });
+
+        const result = await response.json();
+        if (result.error) {
+          document.getElementById("result").innerText = "❌ Error: " + result.error;
+        } else {
+          document.getElementById("result").innerHTML = `
+            🔍 <strong>Will Fail:</strong> ${result.will_fail} <br>
+            📊 <strong>Probability:</strong> ${result.probability}<br>
+            💡 <strong>Reason:</strong> ${result.reason}<br>
+            ⚠️ <strong>Spike:</strong> ${result.last_spike.metric} (${result.last_spike.change})
+          `;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("result").innerText = "❌ Could not reach server.";
+      }
+    }
+  </script>
+</body>
+</html>
