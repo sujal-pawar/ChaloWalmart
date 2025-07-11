@@ -3,14 +3,20 @@ import joblib
 import tensorflow as tf
 import psutil
 import time
+import os
 
 FEATURES = ['cpu', 'memory', 'disk', 'temperature', 'errors', 
             'response_time', 'network', 'uptime', 'processes', 'threads']
 SEQ_LENGTH = 10
 
 def load_model_and_scaler():
-    model = tf.keras.models.load_model('models/lstm_failure_predictor.h5')
-    scaler = joblib.load('models/feature_scaler.pkl')
+    # Get the absolute path to the models directory
+    current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_path = os.path.join(current_dir, 'models', 'lstm_failure_predictor.h5')
+    scaler_path = os.path.join(current_dir, 'models', 'feature_scaler.pkl')
+    
+    model = tf.keras.models.load_model(model_path)
+    scaler = joblib.load(scaler_path)
     return model, scaler
 
 def predict_failure(raw_sequence, model, scaler):
