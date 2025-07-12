@@ -176,13 +176,13 @@ export default function StatusHero() {
         className="min-h-screen flex items-center justify-center px-4 bg-black"
       >
         <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
             {/* Left column - Server Status */}
-            <div className="col-span-1 lg:col-span-2">
+            <div className="col-span-1 lg:col-span-2 h-full flex flex-col">
               <h2 className="text-3xl font-bold mb-6">Server Status</h2>
 
               {/* Status Card */}
-              <div className="bg-[#141414] rounded-xl shadow-xl p-6 border border-[#2A2A2A]">
+              <div className="bg-[#141414] rounded-xl shadow-xl p-6 border border-[#2A2A2A] h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div
@@ -325,10 +325,10 @@ export default function StatusHero() {
             </div>
 
             {/* Right column - Key Metrics */}
-            <div>
+            <div className="h-full flex flex-col">
               <h2 className="text-2xl font-bold mb-6">Key Metrics</h2>
 
-              <div className="bg-[#141414] rounded-xl shadow-xl p-6 border border-[#2A2A2A]">
+              <div className="bg-[#141414] rounded-xl shadow-xl p-6 border border-[#2A2A2A] h-full flex flex-col">
                 <div className="space-y-6">
                   {serverStatus.metrics.map((metric, index) => (
                     <div
@@ -403,13 +403,6 @@ export default function StatusHero() {
               />
             </svg>
           </div>
-        </div>
-      )}
-
-      {/* Parameter Grid - Shows on scroll */}
-      {showParameterGrid && (
-        <div className="transition-all duration-500 ease-in-out">
-          <ParameterGrid />
         </div>
       )}
     </div>
