@@ -83,5 +83,5 @@ def get_system_data_sequence():
             print("psutil error:", e)
             # Only fallback to zeros if the whole row fails
             sequence.append([0]*10)
-        time.sleep(0.1)  # keep it light
+        time.sleep(0.5)  # keep it light
     return sequence
