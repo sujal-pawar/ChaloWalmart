@@ -96,4 +96,5 @@ def get_system_data_sequence():
                 sequence.append([None]*10)
         time.sleep(0.1)  # keep it light
     # print("Live sequence:", sequence)  # Debug log removed
+
     return sequence
