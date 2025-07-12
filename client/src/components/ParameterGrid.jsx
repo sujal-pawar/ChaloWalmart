@@ -94,8 +94,8 @@ export default function ParameterGrid() {
     temperature: "°C",
     errors: "",
     responseTime: "ms",
-    network: "KB",
-    uptime: "s",
+    network: "GB",
+    uptime: "days",
     processes: "",
     threads: "",
   };
@@ -135,7 +135,7 @@ export default function ParameterGrid() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/live-sequence");
+        const res = await fetch("http://localhost:5001/live-sequence");
         const data = await res.json();
 
         if (
@@ -194,7 +194,7 @@ export default function ParameterGrid() {
           });
 
           // Call predict API to get failure prediction
-          const predRes = await fetch("http://localhost:5000/predict", {
+          const predRes = await fetch("http://localhost:5001/predict", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -229,7 +229,9 @@ export default function ParameterGrid() {
           }
 
           if (newParameters.memory.status === "critical") {
-            recommendations.push("Increase memory allocation or check for memory leaks");
+            recommendations.push(
+              "Increase memory allocation or check for memory leaks"
+            );
           }
 
           if (
@@ -476,7 +478,13 @@ export default function ParameterGrid() {
                     </h3>
                     <div className="flex items-center">
                       <span className={`text-xl font-bold ${colors.text}`}>
-                        {Math.round(param.value * 10) / 10}
+                        {key === "uptime"
+                          ? `${(param.value / 86400).toFixed(1)}`
+                          : key === "responseTime"
+                          ? param.value.toFixed(2)
+                          : key === "network"
+                          ? `${(param.value / (1024 * 1024)).toFixed(2)}`
+                          : Math.round(param.value * 10) / 10}
                         {units[key]}
                       </span>
                       <div className="ml-2">{renderTrend(param.trend)}</div>
