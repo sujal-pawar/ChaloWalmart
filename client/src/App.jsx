@@ -12,15 +12,14 @@ function App() {
       <Navbar />
       
       {/* Main content */}
-      <div className='bg-black'>
+      <div className='bg-black'>                
         
-        {/* Live Graphs Section */}
-        <LiveGraphs />
         {/* Hero Section with Status */}
-        <StatusHero />
-        
+        <StatusHero />                
         {/* Parameter Grid Section */}
         <ParameterGrid />
+        {/* Live Graphs Section */}
+        <LiveGraphs />
         
       </div>
     </div>
