@@ -1,0 +1,13 @@
+.spike-glow {
+  box-shadow: 0 0 32px 8px #ff3333cc, 0 0 8px 2px #ff3333cc;
+  animation: spikePulse 1.2s infinite alternate;
+}
+
+@keyframes spikePulse {
+  0% {
+    box-shadow: 0 0 32px 8px #ff3333cc, 0 0 8px 2px #ff3333cc;
+  }
+  100% {
+    box-shadow: 0 0 48px 16px #ff333399, 0 0 16px 4px #ff333399;
+  }
+} 
