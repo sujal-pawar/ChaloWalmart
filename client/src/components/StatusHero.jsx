@@ -405,13 +405,7 @@ export default function StatusHero() {
           </div>
         </div>
       )}
-
-      {/* Parameter Grid - Shows on scroll */}
-      {showParameterGrid && (
-        <div className="transition-all duration-500 ease-in-out">
-          <ParameterGrid />
-        </div>
-      )}
+        
     </div>
   );
 }
