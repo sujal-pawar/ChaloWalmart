@@ -58,6 +58,7 @@ def analyze_reason(sequence):
 
 def get_system_data_sequence():
     sequence = []
+    last_good_row = None
     for _ in range(SEQ_LENGTH):
         try:
             cpu = psutil.cpu_percent(interval=0.1)
@@ -74,14 +75,26 @@ def get_system_data_sequence():
             network = psutil.net_io_counters().bytes_sent / 1024
             uptime = time.time() - psutil.boot_time()
             processes = len(psutil.pids())
-            threads = sum(p.num_threads() for p in psutil.process_iter())
+            # Robust thread counting
+            threads = 0
+            for p in psutil.process_iter():
+                try:
+                    threads += p.num_threads()
+                except Exception:
+                    continue
 
             row = [cpu, memory, disk, temperature, errors,
                    response_time, network, uptime, processes, threads]
             sequence.append(row)
+            last_good_row = row
         except Exception as e:
             print("psutil error:", e)
-            # Only fallback to zeros if the whole row fails
-            sequence.append([0]*10)
-        time.sleep(0.5)  # keep it light
+            # Use last good row if available, else None, else zeros
+            if last_good_row is not None:
+                sequence.append(last_good_row)
+            else:
+                sequence.append([None]*10)
+        time.sleep(0.1)  # keep it light
+    # print("Live sequence:", sequence)  # Debug log removed
+
     return sequence

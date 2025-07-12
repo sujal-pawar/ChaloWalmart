@@ -3,6 +3,7 @@ import './App.css'
 import Navbar from './components/Navbar'
 import StatusHero from './components/StatusHero'
 import ParameterGrid from './components/ParameterGrid'
+import LiveGraphs from './components/LiveGraphs';
 
 function App() {
   return (
@@ -13,6 +14,8 @@ function App() {
       {/* Main content */}
       <div className='bg-black'>
         
+        {/* Live Graphs Section */}
+        <LiveGraphs />
         {/* Hero Section with Status */}
         <StatusHero />
         
