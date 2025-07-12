@@ -5,7 +5,7 @@ const BASE_URL = 'http://localhost:5000/api';
 
 // Flag to control whether to use mock data or real backend
 // Set this to false when your Flask backend is ready
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Create an axios instance with common configuration
 const api = axios.create({

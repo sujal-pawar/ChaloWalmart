@@ -4,79 +4,96 @@ import ParameterGrid from "./ParameterGrid";
 export default function StatusHero() {
   const [serverStatus, setServerStatus] = useState({
     status: "Online", // Online, Warning, Critical
-    probability: 0.82, // Probability from 0 to 1
-    lastIncident: "12d 5h ago",
+    probability: 0.5, // Probability from 0 to 1
+    lastIncident: "N/A",
     metrics: [
-      { name: "CPU Load", value: "78%", status: "warning" },
-      { name: "Memory", value: "67%", status: "normal" },
-      { name: "Response Time", value: "230ms", status: "critical" },
-      { name: "Disk I/O", value: "28MB/s", status: "normal" },
+      { name: "CPU Load", value: "0%", status: "normal" },
+      { name: "Memory", value: "0%", status: "normal" },
+      { name: "Response Time", value: "0ms", status: "normal" },
+      { name: "Disk I/O", value: "0MB/s", status: "normal" },
     ],
+    reason: "",
+    last_spike: {},
   });
 
   const [showParameterGrid, setShowParameterGrid] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [hasScrolled, setHasScrolled] = useState(false);
 
-  // In a real app, you would fetch this data from your backend
+  // Fetch real data from backend
   useEffect(() => {
-    // Mock data fetch - would be replaced with actual API call
-    const timer = setInterval(() => {
-      // Simulate changing data
-      const randomMetrics = [
-        {
-          name: "CPU Load",
-          value: `${Math.floor(65 + Math.random() * 30)}%`,
-          status:
-            Math.random() > 0.7
-              ? "warning"
-              : Math.random() > 0.9
-              ? "critical"
-              : "normal",
-        },
-        {
-          name: "Memory",
-          value: `${Math.floor(60 + Math.random() * 25)}%`,
-          status: Math.random() > 0.8 ? "warning" : "normal",
-        },
-        {
-          name: "Response Time",
-          value: `${Math.floor(180 + Math.random() * 150)}ms`,
-          status:
-            Math.random() > 0.7
-              ? "critical"
-              : Math.random() > 0.5
-              ? "warning"
-              : "normal",
-        },
-        {
-          name: "Disk I/O",
-          value: `${Math.floor(20 + Math.random() * 20)}MB/s`,
-          status: Math.random() > 0.9 ? "warning" : "normal",
-        },
-      ];
+    const fetchData = async () => {
+      try {
+        // Get live sequence data
+        const res = await fetch("http://localhost:5000/live-sequence");
+        const data = await res.json();
 
-      const probability = Math.min(
-        0.95,
-        Math.max(0.05, 0.7 + (Math.random() - 0.5) * 0.4)
-      );
-      let status =
-        probability > 0.8
-          ? "Online"
-          : probability > 0.5
-          ? "Warning"
-          : "Critical";
+        if (data.sequence && Array.isArray(data.sequence) && data.sequence.length > 0) {
+          // Get the latest values (last row in the sequence)
+          const last = data.sequence[data.sequence.length - 1];
 
-      setServerStatus({
-        ...serverStatus,
-        status,
-        probability,
-        metrics: randomMetrics,
-      });
-    }, 5000); // Update every 5 seconds
+          // Get prediction for the sequence
+          const predRes = await fetch("http://localhost:5000/predict", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sequence: data.sequence }),
+          });
 
+          const prediction = await predRes.json();
+
+          // Update metrics
+          const newMetrics = [
+            {
+              name: "CPU Load",
+              value: `${Math.round(last[0])}%`,
+              status: last[0] > 85 ? "critical" : last[0] > 70 ? "warning" : "normal",
+            },
+            {
+              name: "Memory",
+              value: `${Math.round(last[1])}%`,
+              status: last[1] > 90 ? "critical" : last[1] > 75 ? "warning" : "normal",
+            },
+            {
+              name: "Response Time",
+              value: `${Math.round(last[5])}ms`,
+              status: last[5] > 350 ? "critical" : last[5] > 250 ? "warning" : "normal",
+            },
+            {
+              name: "Disk I/O",
+              value: `${Math.round(last[2])}%`,
+              status: last[2] > 90 ? "critical" : last[2] > 80 ? "warning" : "normal",
+            },
+          ];
+
+          // Determine status based on prediction
+          let status = "Online";
+          if (prediction.will_fail) {
+            status = prediction.probability > 0.75 ? "Critical" : "Warning";
+          }
+
+          setServerStatus({
+            status,
+            probability: prediction.probability,
+            metrics: newMetrics,
+            reason: prediction.reason,
+            last_spike: prediction.last_spike,
+            lastIncident: serverStatus.lastIncident,
+          });
+        }
+      } catch (e) {
+        console.error("Error fetching data:", e);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Set up interval for periodic updates
+    const timer = setInterval(fetchData, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [serverStatus.lastIncident]);
 
   // Handle scroll to show parameter grid and control scroll indicator
   useEffect(() => {
@@ -275,11 +292,19 @@ export default function StatusHero() {
                       <div className="mt-2 text-sm text-gray-300">
                         <p>
                           {serverStatus.status === "Online"
-                            ? "Servers are running normally. No issues have been detected in the last 12 hours."
+                            ? "Servers are running normally. No issues have been detected."
                             : serverStatus.status === "Warning"
-                            ? "We've detected higher than normal response times and CPU load. Monitoring system closely."
-                            : "Multiple critical metrics indicate potential server crash. Automatic remediation in progress."}
+                            ? serverStatus.reason ||
+                              "We've detected higher than normal response times and CPU load. Monitoring system closely."
+                            : serverStatus.reason ||
+                              "Multiple critical metrics indicate potential server crash. Automatic remediation in progress."}
                         </p>
+                        {serverStatus.last_spike && serverStatus.last_spike.metric && (
+                          <p className="mt-1 text-xs font-semibold">
+                            Last spike: {serverStatus.last_spike.metric} changed by{" "}
+                            {serverStatus.last_spike.change}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -287,7 +312,21 @@ export default function StatusHero() {
 
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-4">
-                  <button className="bg-[#0071DC] hover:bg-[#0062BD] text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                  <button
+                    className="bg-[#0071DC] hover:bg-[#0062BD] text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+                    onClick={() => {
+                      fetch("http://localhost:5000/live-sequence")
+                        .then((res) => res.json())
+                        .then((data) => {
+                          // This will trigger a re-render since the useEffect depends on it
+                          setServerStatus((prev) => ({
+                            ...prev,
+                            lastIncident: new Date().toLocaleTimeString(),
+                          }));
+                        })
+                        .catch((err) => console.error("Error refreshing:", err));
+                    }}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5 mr-2"
@@ -371,8 +410,8 @@ export default function StatusHero() {
                     {serverStatus.status === "Online"
                       ? "Our AI models predict no issues in the next 24 hours based on current metrics."
                       : serverStatus.status === "Warning"
-                      ? "Potential instability detected. There is a moderate risk of service degradation in the next 6 hours."
-                      : "High probability of server crash detected. Immediate intervention recommended."}
+                      ? `Potential instability detected. Probability: ${probabilityPercentage}%. ${serverStatus.reason}`
+                      : `High probability of server crash detected (${probabilityPercentage}%). ${serverStatus.reason}`}
                   </p>
                 </div>
               </div>
