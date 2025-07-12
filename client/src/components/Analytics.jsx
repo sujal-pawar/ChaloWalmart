@@ -149,23 +149,37 @@ export default function Analytics() {
             });
 
           // Calculate performance score
-          let cpuPenalty = Math.max(0, (currentMetrics.cpu - 80) * 0.5); // Up to 10 points if CPU reaches 100%
-          let memoryPenalty = Math.max(0, (currentMetrics.memory - 85) * 0.7); // Up to ~10.5 points if memory hits 100%
-          let tempPenalty = Math.max(
-            0,
-            (currentMetrics.temperature - 70) * 0.5
-          ); // Up to 15 if temp is 100
-          let errorPenalty = Math.min(currentMetrics.errors * 4, 20); // 4 points per error, max 20
-          let rtPenalty = Math.max(0, (currentMetrics.responseTime - 400) / 10); // Every +10ms costs 1 point
+          let cpuPenalty =
+            currentMetrics.cpu > 80
+              ? Math.min((currentMetrics.cpu - 80) * 1, 20)
+              : 0; // Max 20 points
+          let memoryPenalty =
+            currentMetrics.memory > 85
+              ? Math.min((currentMetrics.memory - 85) * 1, 25)
+              : 0; // Max 25 points
+          let tempPenalty =
+            currentMetrics.temperature > 70
+              ? Math.min((currentMetrics.temperature - 70) * 1, 15)
+              : 0; // Max 15 points
+          let errorPenalty = Math.min(currentMetrics.errors * 4, 20); // 4 points per error, capped at 20
+          let rtPenalty =
+            currentMetrics.responseTime > 400
+              ? Math.min(
+                  Math.floor((currentMetrics.responseTime - 400) / 10),
+                  15
+                )
+              : 0; // Every 10ms = -1pt, max 15
 
-          const performanceScore = Math.max(
-            0,
-            100 -
-              (cpuPenalty +
-                memoryPenalty +
-                tempPenalty +
-                errorPenalty +
-                rtPenalty)
+          const performanceScore = Math.floor(
+            Math.max(
+              0,
+              100 -
+                (cpuPenalty +
+                  memoryPenalty +
+                  tempPenalty +
+                  errorPenalty +
+                  rtPenalty)
+            )
           );
 
           setAnalyticsData({
@@ -178,125 +192,10 @@ export default function Analytics() {
         }
       } catch (error) {
         console.error("Failed to fetch real data:", error);
-        // Fallback to mock data if API fails
-        generateMockData();
       }
     };
 
-    const generateMockData = () => {
-      const now = new Date();
-      const historicalData = [];
-
-      // Generate 24 hours of data points
-      for (let i = 23; i >= 0; i--) {
-        const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-        historicalData.push({
-          time: time.toLocaleTimeString(),
-          timestamp: time.getTime(),
-          cpu: Math.floor(20 + Math.random() * 60),
-          memory: Math.floor(40 + Math.random() * 40),
-          disk: Math.floor(60 + Math.random() * 30),
-          temperature: Math.floor(40 + Math.random() * 30),
-          errors: Math.floor(Math.random() * 10),
-          responseTime: Math.floor(100 + Math.random() * 300),
-          network: Math.floor(20 + Math.random() * 60),
-          uptime: Math.floor(1 + Math.random() * 30),
-          processes: Math.floor(50 + Math.random() * 100),
-          threads: Math.floor(100 + Math.random() * 200),
-        });
-      }
-
-      const currentMetrics = {
-        cpu: Math.floor(20 + Math.random() * 60),
-        memory: Math.floor(40 + Math.random() * 40),
-        disk: Math.floor(60 + Math.random() * 30),
-        temperature: Math.floor(40 + Math.random() * 30),
-        errors: Math.floor(Math.random() * 10),
-        responseTime: Math.floor(100 + Math.random() * 300),
-        network: Math.floor(20 + Math.random() * 60),
-        uptime: Math.floor(1 + Math.random() * 30),
-        processes: Math.floor(50 + Math.random() * 100),
-        threads: Math.floor(100 + Math.random() * 200),
-      };
-
-      // Calculate trends
-      const trends = {};
-      Object.keys(currentMetrics).forEach((metric) => {
-        const recentValues = historicalData.slice(-5).map((d) => d[metric]);
-        const avg =
-          recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
-        const current = currentMetrics[metric];
-
-        if (current > avg * 1.1) trends[metric] = "up";
-        else if (current < avg * 0.9) trends[metric] = "down";
-        else trends[metric] = "stable";
-      });
-
-      // Generate alerts
-      const alerts = [];
-      if (currentMetrics.cpu > 80)
-        alerts.push({
-          type: "warning",
-          message: "High CPU usage detected",
-          metric: "cpu",
-          value: currentMetrics.cpu,
-        });
-      if (currentMetrics.memory > 85)
-        alerts.push({
-          type: "critical",
-          message: "Memory usage critical",
-          metric: "memory",
-          value: currentMetrics.memory,
-        });
-      if (currentMetrics.temperature > 70)
-        alerts.push({
-          type: "warning",
-          message: "High temperature detected",
-          metric: "temperature",
-          value: currentMetrics.temperature,
-        });
-      if (currentMetrics.errors > 5)
-        alerts.push({
-          type: "critical",
-          message: "High error rate",
-          metric: "errors",
-          value: currentMetrics.errors,
-        });
-      if (currentMetrics.responseTime > 400)
-        alerts.push({
-          type: "warning",
-          message: "Slow response time",
-          metric: "responseTime",
-          value: currentMetrics.responseTime,
-        });
-
-      // Calculate performance score
-      let cpuPenalty = cpu > 80 ? Math.min((cpu - 80) * 1, 20) : 0; // Max 20 points
-      let memoryPenalty = memory > 85 ? Math.min((memory - 85) * 1, 25) : 0; // Max 25 points
-      let tempPenalty =
-        temperature > 70 ? Math.min((temperature - 70) * 1, 15) : 0; // Max 15 points
-      let errorPenalty = Math.min(errors * 4, 20); // 4 points per error, capped at 20
-      let rtPenalty =
-        responseTime > 400
-          ? Math.min(Math.floor((responseTime - 400) / 10), 15)
-          : 0; // Every 10ms = -1pt, max 15
-
-      const performanceScore = Math.max(
-        0,
-        100 -
-          (cpuPenalty + memoryPenalty + tempPenalty + errorPenalty + rtPenalty)
-      );
-
-      setAnalyticsData({
-        currentMetrics,
-        historicalData,
-        trends,
-        alerts,
-        performanceScore,
-      });
-    };
-
-    // Try to fetch real data first, fallback to mock data
+    // Fetch real data
     fetchRealData();
     const interval = setInterval(fetchRealData, 5000);
     return () => clearInterval(interval);
@@ -441,7 +340,7 @@ export default function Analytics() {
           <div className="bg-[#141414] rounded-xl p-6 border border-[#2A2A2A]">
             <h3 className="text-lg font-medium mb-4">System Uptime</h3>
             <div className="text-3xl font-bold text-green-500">
-              {analyticsData.currentMetrics.uptime.toFixed(1)}d
+              {(analyticsData.currentMetrics.uptime / 86400).toFixed(1)}days
             </div>
             <p className="text-sm text-gray-400">Days running</p>
           </div>
@@ -455,6 +354,43 @@ export default function Analytics() {
           </div>
         </div>
 
+        {/* Alerts Section */}
+        {analyticsData.alerts.length > 0 && (
+          <div className="bg-[#141414] rounded-xl p-6 border border-[#2A2A2A] mb-8">
+            <h3 className="text-xl font-medium mb-4">Active Alerts</h3>
+            <div className="space-y-3">
+              {analyticsData.alerts.map((alert, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-lg border ${
+                    alert.type === "critical"
+                      ? "bg-red-600/10 border-red-500/30 text-red-400"
+                      : "bg-yellow-600/10 border-yellow-500/30 text-yellow-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{alert.message}</div>
+                      <div className="text-sm opacity-75">
+                        {metricNames[alert.metric]}: {alert.value}
+                        {metricUnits[alert.metric]}
+                      </div>
+                    </div>
+                    <div
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        alert.type === "critical"
+                          ? "bg-red-600/20"
+                          : "bg-yellow-600/20"
+                      }`}
+                    >
+                      {alert.type.toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Main Metric Chart */}
@@ -525,8 +461,23 @@ export default function Analytics() {
                         ),
                       }}
                     >
-                      {analyticsData.currentMetrics[metric]}
-                      {metricUnits[metric]}
+                      {metric === "uptime"
+                        ? `${(
+                            analyticsData.currentMetrics[metric] / 86400
+                          ).toFixed(1)}`
+                        : metric === "responseTime"
+                        ? analyticsData.currentMetrics[metric].toFixed(2)
+                        : metric === "network"
+                        ? `${(
+                            analyticsData.currentMetrics[metric] /
+                            (1024 * 1024)
+                          ).toFixed(2)}`
+                        : analyticsData.currentMetrics[metric]}
+                      {metric === "uptime"
+                        ? "days"
+                        : metric === "network"
+                        ? "GB"
+                        : metricUnits[metric]}
                     </span>
                     <span className="text-lg">
                       {getTrendIcon(analyticsData.trends[metric])}
@@ -537,44 +488,6 @@ export default function Analytics() {
             </div>
           </div>
         </div>
-
-        {/* Alerts Section */}
-        {analyticsData.alerts.length > 0 && (
-          <div className="bg-[#141414] rounded-xl p-6 border border-[#2A2A2A] mb-8">
-            <h3 className="text-xl font-medium mb-4">Active Alerts</h3>
-            <div className="space-y-3">
-              {analyticsData.alerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`p-4 rounded-lg border ${
-                    alert.type === "critical"
-                      ? "bg-red-600/10 border-red-500/30 text-red-400"
-                      : "bg-yellow-600/10 border-yellow-500/30 text-yellow-400"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{alert.message}</div>
-                      <div className="text-sm opacity-75">
-                        {metricNames[alert.metric]}: {alert.value}
-                        {metricUnits[alert.metric]}
-                      </div>
-                    </div>
-                    <div
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        alert.type === "critical"
-                          ? "bg-red-600/20"
-                          : "bg-yellow-600/20"
-                      }`}
-                    >
-                      {alert.type.toUpperCase()}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* System Health Distribution */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -606,14 +519,6 @@ export default function Analytics() {
                       color: getMetricColor(
                         "disk",
                         analyticsData.currentMetrics.disk
-                      ),
-                    },
-                    {
-                      name: "Network",
-                      value: analyticsData.currentMetrics.network,
-                      color: getMetricColor(
-                        "network",
-                        analyticsData.currentMetrics.network
                       ),
                     },
                   ]}
@@ -664,6 +569,7 @@ export default function Analytics() {
                     backgroundColor: "#1F1F1F",
                     border: "1px solid #2A2A2A",
                     borderRadius: "8px",
+                    color: "#FFFFFF",
                   }}
                 />
               </PieChart>
