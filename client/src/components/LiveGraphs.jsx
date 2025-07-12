@@ -2,7 +2,18 @@ import React, { useEffect, useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area } from 'recharts';
 import './LiveGraphs.css'; // Add this import for custom styles
 
-const FEATURES = ['cpu', 'memory', 'disk', 'temperature', 'errors', 'response_time', 'network', 'uptime', 'processes', 'threads'];
+const FEATURES = [
+  "cpu",
+  "memory",
+  "disk",
+  "temperature",
+  "errors",
+  "response_time",
+  "network",
+  "uptime",
+  "processes",
+  "threads",
+];
 const FEATURE_LABELS = {
   cpu: 'CPU',
   memory: 'Memory',
@@ -48,9 +59,16 @@ export default function LiveGraphs() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/live-sequence');
+        const res = await fetch("http://localhost:5001/live-sequence");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
-        if (data.sequence && Array.isArray(data.sequence) && data.sequence.length > 0) {
+        if (
+          data.sequence &&
+          Array.isArray(data.sequence) &&
+          data.sequence.length > 0
+        ) {
           const last = data.sequence[data.sequence.length - 1];
           // Map to feature names
           const entry = { timestamp: new Date().toLocaleTimeString() };
@@ -63,11 +81,15 @@ export default function LiveGraphs() {
             if (val !== 0) isAllZero = false;
           });
           if (isValid && !isAllZero) {
-            setHistory(prev => [...prev.slice(-29), entry]); // Keep last 30
+            setHistory((prev) => [...prev.slice(-29), entry]); // Keep last 30
+          } else {
+            console.log("Skipping invalid or all-zero data:", entry);
           }
+        } else {
+          console.log("No valid sequence data received:", data);
         }
       } catch (e) {
-        // Optionally handle error
+        console.error("Error fetching live data:", e);
       }
     };
     fetchData();
@@ -179,16 +201,44 @@ export default function LiveGraphs() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {FEATURES.map((feature) => (
-            <div key={feature} className="bg-[#141414] rounded-lg border border-[#2A2A2A] p-4">
-              <h3 className="text-lg font-semibold mb-2 text-gray-200">{FEATURE_LABELS[feature]}</h3>
+            <div
+              key={feature}
+              className="bg-[#141414] rounded-lg border border-[#2A2A2A] p-4"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-gray-200">
+                {FEATURE_LABELS[feature]}
+              </h3>
               <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={history} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <LineChart
+                  data={history}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                  <XAxis dataKey="timestamp" tick={{ fill: '#aaa', fontSize: 10 }} minTickGap={20} />
-                  <YAxis tick={{ fill: '#aaa', fontSize: 10 }} domain={['auto', 'auto']} />
-                  <Tooltip contentStyle={{ background: '#222', border: 'none', color: '#fff' }} />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={{ fill: "#aaa", fontSize: 10 }}
+                    minTickGap={20}
+                  />
+                  <YAxis
+                    tick={{ fill: "#aaa", fontSize: 10 }}
+                    domain={["auto", "auto"]}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#222",
+                      border: "none",
+                      color: "#fff",
+                    }}
+                  />
                   <Legend />
-                  <Line type="monotone" dataKey={feature} stroke="#FFC220" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line
+                    type="monotone"
+                    dataKey={feature}
+                    stroke="#FFC220"
+                    strokeWidth={2}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -197,4 +247,4 @@ export default function LiveGraphs() {
       </div>
     </section>
   );
-} 
+}
