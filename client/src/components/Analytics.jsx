@@ -126,7 +126,7 @@ export default function Analytics() {
               metric: "memory",
               value: currentMetrics.memory,
             });
-          if (currentMetrics.temperature > 70)
+          if (currentMetrics.temperature > 55)
             alerts.push({
               type: "warning",
               message: "High temperature detected",
@@ -158,8 +158,8 @@ export default function Analytics() {
               ? Math.min((currentMetrics.memory - 85) * 1, 25)
               : 0; // Max 25 points
           let tempPenalty =
-            currentMetrics.temperature > 70
-              ? Math.min((currentMetrics.temperature - 70) * 1, 15)
+            currentMetrics.temperature > 55
+              ? Math.min((currentMetrics.temperature - 55) * 1, 15)
               : 0; // Max 15 points
           let errorPenalty = Math.min(currentMetrics.errors * 4, 20); // 4 points per error, capped at 20
           let rtPenalty =
@@ -232,7 +232,7 @@ export default function Analytics() {
       cpu: { warning: 70, critical: 85 },
       memory: { warning: 75, critical: 90 },
       disk: { warning: 80, critical: 90 },
-      temperature: { warning: 60, critical: 75 },
+      temperature: { warning: 52, critical: 55 },
       errors: { warning: 3, critical: 7 },
       responseTime: { warning: 300, critical: 500 },
       network: { warning: 80, critical: 95 },

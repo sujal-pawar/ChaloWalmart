@@ -1,83 +1,26 @@
 import React, { useState, useEffect } from "react";
 
-export default function ParameterGrid() {
-  // State for the 10 server parameters
-  const [parameters, setParameters] = useState({
-    cpu: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    memory: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    disk: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    temperature: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    errors: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    responseTime: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    network: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    uptime: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    processes: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-    threads: {
-      value: 0,
-      trend: "stable",
-      status: "normal",
-      history: [0, 0, 0, 0, 0],
-    },
-  });
-
-  // Crash likelihood calculation based on parameter values
-  const [crashLikelihood, setCrashLikelihood] = useState({
-    probability: 0,
-    timeFrame: "N/A",
-    recommendations: ["Waiting for data..."],
-  });
+export default function ParameterGrid({ history }) {
+  // Feature index mapping to match backend's order
+  const featureIndexMap = {
+    cpu: 0,
+    memory: 1,
+    disk: 2,
+    temperature: 3,
+    errors: 4,
+    responseTime: 5, // This is 'response_time' in backend
+    network: 6,
+    uptime: 7,
+    processes: 8,
+    threads: 9,
+  };
 
   // Thresholds for determining parameter status
   const thresholds = {
     cpu: { warning: 70, critical: 85 },
     memory: { warning: 75, critical: 90 },
     disk: { warning: 80, critical: 90 },
-    temperature: { warning: 55, critical: 70 },
+    temperature: { warning: 52, critical: 55 },
     errors: { warning: 5, critical: 10 },
     responseTime: { warning: 180, critical: 220 },
     network: { warning: 80, critical: 95 },
@@ -114,173 +57,99 @@ export default function ParameterGrid() {
     threads: "Active Threads",
   };
 
-  // Feature index mapping to match backend's order
-  const featureIndexMap = {
-    cpu: 0,
-    memory: 1,
-    disk: 2,
-    temperature: 3,
-    errors: 4,
-    responseTime: 5, // This is 'response_time' in backend
-    network: 6,
-    uptime: 7,
-    processes: 8,
-    threads: 9,
+  // Compute parameters from history
+  const computeParameters = () => {
+    const params = {};
+    Object.keys(featureIndexMap).forEach((param) => {
+      const idx = featureIndexMap[param];
+      // Get last 5 values for this parameter from history
+      const paramHistory = history.slice(-5).map(seq => seq[idx] ?? 0);
+      const value = paramHistory[paramHistory.length - 1] ?? 0;
+      const prevValue = paramHistory.length > 1 ? paramHistory[paramHistory.length - 2] : value;
+      // Determine trend
+      let trend = "stable";
+      if (value > prevValue + (param === "uptime" ? 1 : 2)) {
+        trend = "up";
+      } else if (value < prevValue - 2) {
+        trend = "down";
+      }
+      // Determine status
+      let status = "normal";
+      if (param === "uptime") {
+        status = "normal";
+      } else {
+        if (value >= thresholds[param].critical) {
+          status = "critical";
+        } else if (value >= thresholds[param].warning) {
+          status = "warning";
+        }
+      }
+      params[param] = {
+        value,
+        trend,
+        status,
+        history: paramHistory.length === 5 ? paramHistory : Array(5 - paramHistory.length).fill(0).concat(paramHistory),
+      };
+    });
+    return params;
   };
 
-  // Update parameters with real data from backend
+  const parameters = computeParameters();
+
+  // Crash likelihood calculation based on parameter values
+  const [crashLikelihood, setCrashLikelihood] = useState({
+    probability: 0,
+    timeFrame: "N/A",
+    recommendations: ["Waiting for data..."],
+  });
+
+  // Update crash likelihood when parameters/history change
   useEffect(() => {
-    // Reference to the sequences we've collected
-    let dataHistory = [];
-
-    const fetchData = async () => {
+    const fetchPrediction = async () => {
+      if (!history || history.length === 0) return;
       try {
-        const res = await fetch("http://localhost:5001/live-sequence");
-        const data = await res.json();
-
-        if (
-          data.sequence &&
-          Array.isArray(data.sequence) &&
-          data.sequence.length > 0
-        ) {
-          // Add the newest sequence to our history
-          const latestSequence = data.sequence[data.sequence.length - 1];
-
-          // Add it to our history but keep only last 5 sequences
-          dataHistory = [...dataHistory, latestSequence].slice(-5);
-
-          // Create a new parameters object
-          const newParameters = { ...parameters };
-
-          // Backend returns an array where indexes match our feature map
-          Object.keys(featureIndexMap).forEach((param) => {
-            const backendIndex = featureIndexMap[param];
-            const currentValue = latestSequence[backendIndex];
-
-            // Get previous values for this parameter to determine trend
-            const prevValues = newParameters[param].history;
-            const prevValue = prevValues[prevValues.length - 1];
-
-            // Determine trend
-            let trend = "stable";
-            if (currentValue > prevValue + (param === "uptime" ? 1 : 2)) {
-              trend = "up";
-            } else if (currentValue < prevValue - 2) {
-              trend = "down";
-            }
-
-            // Determine status based on thresholds
-            let status = "normal";
-            if (param === "uptime") {
-              status = "normal"; // Uptime is always normal
-            } else {
-              if (currentValue >= thresholds[param].critical) {
-                status = "critical";
-              } else if (currentValue >= thresholds[param].warning) {
-                status = "warning";
-              }
-            }
-
-            // Update history
-            const history = [...prevValues.slice(1), currentValue];
-
-            // Update parameter
-            newParameters[param] = {
-              value: currentValue,
-              trend,
-              status,
-              history,
-            };
-          });
-
-          // Call predict API to get failure prediction
-          const predRes = await fetch("http://localhost:5001/predict", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ sequence: data.sequence }),
-          });
-
-          const prediction = await predRes.json();
-
-          // Calculate time frame based on probability
-          let timeFrame = "24 hours";
-          if (prediction.probability > 0.7) {
-            timeFrame = "1 hour";
-          } else if (prediction.probability > 0.5) {
-            timeFrame = "6 hours";
-          } else if (prediction.probability > 0.3) {
-            timeFrame = "12 hours";
-          }
-
-          // Generate recommendations based on critical and warning parameters
-          const recommendations = [];
-
-          // Add reason from prediction as first recommendation
-          if (prediction.reason) {
-            recommendations.push(prediction.reason);
-          }
-
-          if (newParameters.cpu.status === "critical") {
-            recommendations.push("Reduce CPU-intensive tasks immediately");
-          } else if (newParameters.cpu.status === "warning") {
-            recommendations.push("Monitor CPU usage and prepare to scale");
-          }
-
-          if (newParameters.memory.status === "critical") {
-            recommendations.push(
-              "Increase memory allocation or check for memory leaks"
-            );
-          }
-
-          if (
-            newParameters.disk.status === "critical" ||
-            newParameters.disk.status === "warning"
-          ) {
-            recommendations.push("Free up disk space or add storage");
-          }
-
-          if (newParameters.errors.status === "critical") {
-            recommendations.push("Critical: Investigate increasing error rate");
-          }
-
-          if (newParameters.responseTime.status === "critical") {
-            recommendations.push(
-              "Optimize response time - service degradation detected"
-            );
-          }
-
-          if (newParameters.temperature.status === "critical") {
-            recommendations.push("Check cooling systems immediately");
-          }
-
-          // Limit to top 3 recommendations
-          const limitedRecommendations = recommendations.slice(0, 3);
-
-          setCrashLikelihood({
-            probability: prediction.probability,
-            timeFrame,
-            recommendations:
-              limitedRecommendations.length > 0
-                ? limitedRecommendations
-                : ["System operating within normal parameters"],
-          });
-
-          setParameters(newParameters);
+        const res = await fetch("http://localhost:5001/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sequence: history }),
+        });
+        const prediction = await res.json();
+        // Calculate time frame based on probability
+        let timeFrame = "24 hours";
+        if (prediction.probability > 0.7) {
+          timeFrame = "1 hour";
+        } else if (prediction.probability > 0.5) {
+          timeFrame = "6 hours";
+        } else if (prediction.probability > 0.3) {
+          timeFrame = "12 hours";
         }
+        // Generate recommendations
+        const recommendations = [];
+        if (prediction.reason) recommendations.push(prediction.reason);
+        if (parameters.cpu.status === "critical") recommendations.push("Reduce CPU-intensive tasks immediately");
+        else if (parameters.cpu.status === "warning") recommendations.push("Monitor CPU usage and prepare to scale");
+        if (parameters.memory.status === "critical") recommendations.push("Increase memory allocation or check for memory leaks");
+        if (parameters.disk.status === "critical" || parameters.disk.status === "warning") recommendations.push("Free up disk space or add storage");
+        if (parameters.errors.status === "critical") recommendations.push("Critical: Investigate increasing error rate");
+        if (parameters.responseTime.status === "critical") recommendations.push("Optimize response time - service degradation detected");
+        if (parameters.temperature.status === "critical") recommendations.push("Check cooling systems immediately");
+        const limitedRecommendations = recommendations.slice(0, 3);
+        setCrashLikelihood({
+          probability: prediction.probability,
+          timeFrame,
+          recommendations: limitedRecommendations.length > 0 ? limitedRecommendations : ["System operating within normal parameters"],
+        });
       } catch (err) {
-        console.error("Error fetching data:", err);
+        setCrashLikelihood({
+          probability: 0,
+          timeFrame: "N/A",
+          recommendations: ["Waiting for data..."],
+        });
       }
     };
-
-    // Initial fetch
-    fetchData();
-
-    // Set up interval for periodic updates
-    const timer = setInterval(fetchData, 3000);
-    return () => clearInterval(timer);
-  }, []);
+    fetchPrediction();
+    // eslint-disable-next-line
+  }, [history]);
 
   // Helper function to render trend indicator
   const renderTrend = (trend) => {
@@ -411,8 +280,11 @@ export default function ParameterGrid() {
   };
 
   const crashColors = getCrashLikelihoodColor();
+  // Safe calculation for crash probability percentage
   const crashProbabilityPercentage = Math.round(
-    crashLikelihood.probability * 100
+    typeof crashLikelihood.probability === 'number' && !isNaN(crashLikelihood.probability)
+      ? crashLikelihood.probability * 100
+      : 1 // Show 1% if missing or invalid, to indicate stability
   );
 
   return (

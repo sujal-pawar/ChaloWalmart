@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ParameterGrid from "./ParameterGrid";
 
-export default function StatusHero() {
+export default function StatusHero({ history }) {
   const [serverStatus, setServerStatus] = useState({
     status: "Online", // Online, Warning, Critical
     probability: 0.5, // Probability from 0 to 1
@@ -19,6 +19,20 @@ export default function StatusHero() {
   const [showParameterGrid, setShowParameterGrid] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [hasScrolled, setHasScrolled] = useState(false);
+
+  // AI Prediction state
+  const [aiPrediction, setAiPrediction] = useState({ probability: 0, timeFrame: "N/A", reason: "" });
+  useEffect(() => {
+    if (!history || history.length === 0) return;
+    fetch("http://localhost:5001/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sequence: history }),
+    })
+      .then(res => res.json())
+      .then(data => setAiPrediction(data))
+      .catch(() => setAiPrediction({ probability: 0, timeFrame: "N/A", reason: "" }));
+  }, [history]);
 
   // Fetch real data from backend
   useEffect(() => {
@@ -183,7 +197,45 @@ export default function StatusHero() {
   };
 
   const statusColors = getStatusColor();
-  const probabilityPercentage = Math.round(serverStatus.probability * 100);
+  // Safe calculation for probability percentage
+  console.log('AI Prediction:', aiPrediction);
+  const aiProbabilityPercentage = Math.round(
+    typeof aiPrediction.probability === 'number' && !isNaN(aiPrediction.probability)
+      ? aiPrediction.probability * 100
+      : 1 // Show 1% if missing or invalid, to indicate stability
+  );
+
+  // Compute dynamic metrics from history if available
+  const latest = history && history.length > 0 ? history[history.length - 1] : null;
+  const dynamicMetrics = latest
+    ? [
+        {
+          name: "CPU Load",
+          value: `${Math.round(latest[0])}%`,
+          status: latest[0] > 85 ? "critical" : latest[0] > 70 ? "warning" : "normal",
+        },
+        {
+          name: "Memory",
+          value: `${Math.round(latest[1])}%`,
+          status: latest[1] > 90 ? "critical" : latest[1] > 75 ? "warning" : "normal",
+        },
+        {
+          name: "Response Time",
+          value: `${Math.round(latest[5])}ms`,
+          status: latest[5] > 350 ? "critical" : latest[5] > 250 ? "warning" : "normal",
+        },
+        {
+          name: "Disk I/O",
+          value: `${Math.round(latest[2])}%`,
+          status: latest[2] > 90 ? "critical" : latest[2] > 80 ? "warning" : "normal",
+        },
+      ]
+    : [
+        { name: "CPU Load", value: "0%", status: "normal" },
+        { name: "Memory", value: "0%", status: "normal" },
+        { name: "Response Time", value: "0ms", status: "normal" },
+        { name: "Disk I/O", value: "0MB/s", status: "normal" },
+      ];
 
   return (
     <div className="min-h-screen bg-black">
@@ -218,16 +270,16 @@ export default function StatusHero() {
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-medium text-gray-300">
-                      Server Stability
+                      Crash Probability
                     </div>
                     <div className={`text-sm font-medium ${statusColors.text}`}>
-                      {probabilityPercentage}%
+                      {aiProbabilityPercentage}%
                     </div>
                   </div>
                   <div className="h-2 bg-[#1F1F1F] rounded-full overflow-hidden">
                     <div
                       className={`h-full ${statusColors.bg} transition-all duration-500`}
-                      style={{ width: `${probabilityPercentage}%` }}
+                      style={{ width: `${aiProbabilityPercentage}%` }}
                     ></div>
                   </div>
                 </div>
@@ -369,7 +421,7 @@ export default function StatusHero() {
 
               <div className="bg-[#141414] rounded-xl shadow-xl p-6 border border-[#2A2A2A] h-full flex flex-col">
                 <div className="space-y-6">
-                  {serverStatus.metrics.map((metric, index) => (
+                  {dynamicMetrics.map((metric, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between"
@@ -399,19 +451,19 @@ export default function StatusHero() {
                     <div
                       className={`px-2 py-1 rounded ${statusColors.light} ${statusColors.text} text-xs font-medium`}
                     >
-                      {serverStatus.status === "Online"
-                        ? "Stable"
-                        : serverStatus.status === "Warning"
+                      {aiPrediction.probability > 0.7
+                        ? "Alert"
+                        : aiPrediction.probability > 0.4
                         ? "Monitor"
-                        : "Alert"}
+                        : "Stable"}
                     </div>
                   </div>
                   <p className="text-sm text-gray-400">
-                    {serverStatus.status === "Online"
-                      ? "Our AI models predict no issues in the next 24 hours based on current metrics."
-                      : serverStatus.status === "Warning"
-                      ? `Potential instability detected. Probability: ${probabilityPercentage}%. ${serverStatus.reason}`
-                      : `High probability of server crash detected (${probabilityPercentage}%). ${serverStatus.reason}`}
+                    {aiPrediction.probability > 0.7
+                      ? `High probability of server crash detected (${Math.round(aiPrediction.probability * 100)}%). Estimated time frame: ${aiPrediction.timeFrame}. ${aiPrediction.reason || "Immediate action recommended."}`
+                      : aiPrediction.probability > 0.4
+                      ? `Potential instability detected. Probability: ${Math.round(aiPrediction.probability * 100)}%. Estimated time frame: ${aiPrediction.timeFrame}. ${aiPrediction.reason || "Monitor system closely."}`
+                      : `Our AI models predict no issues in the next 24 hours based on current metrics.`}
                   </p>
                 </div>
               </div>
