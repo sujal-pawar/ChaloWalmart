@@ -55,10 +55,7 @@ export default function Navbar() {
         <div className="flex items-center py-2 justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-4">
-            {/* Walmart Logo */}
-            <img src={logo} alt="Walmart logo" width={120} className="object-contain" />
-            {/* Collaboration Indicator */}
-            <span className="text-gray-400 font-semibold text-lg mx-2">x</span>
+
             {/* ServerPulse Logo - now 200x68px */}
             <img src={serverpulseLogo} alt="ServerPulse logo" width={200} height={68} className="object-contain rounded shadow-lg" style={{height: '68px', width: '200px'}} />
             {/* Collab Text removed */}
