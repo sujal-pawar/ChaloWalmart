@@ -19,8 +19,7 @@ ServerPulse is a comprehensive real-time server monitoring solution that combine
 - **Responsive Design**: Works on desktop and mobile devices
 
 <!-- Add a screenshot of your main dashboard here -->
-<img width="1879" height="775" alt="Screenshot 2025-07-14 235833" src="https://github.com/user-attachments/assets/81bd1319-efdb-4d53-a9d9-22d1aa4d3900" />
-<img width="1890" height="781" alt="Screenshot 2025-07-14 235746" src="https://github.com/user-attachments/assets/01001573-adb4-433b-8903-dacadfbdcf25" />
+
 <img width="1780" height="653" alt="Screenshot 2025-07-14 235813" src="https://github.com/user-attachments/assets/03a560f5-89d4-42ca-bbf6-5e4681e3fc46" />
 <img width="1799" height="746" alt="Screenshot 2025-07-14 235822" src="https://github.com/user-attachments/assets/3e32bad4-e5b7-47ca-8c18-00bf4da5195a" />
 
@@ -103,7 +102,8 @@ The application consists of three main components:
 - **Graphs**: Visualize historical data with interactive charts
 - **Analytics**: Access predictive insights and recommendations
 
-![Parameter Grid Screenshot]
+<img width="1900" height="775" alt="Screenshot 2025-07-14 235800" src="https://github.com/user-attachments/assets/95c0ba6b-e452-4887-b3be-6661276fc3fd" />
+
 <!-- Add a screenshot of your parameter grid here -->
 
 ### Understanding the Prediction System
@@ -114,7 +114,7 @@ The LSTM neural network analyzes patterns in system metrics to predict potential
 - **Reason**: Key metrics contributing to the prediction
 - **Recommendations**: Suggested actions to prevent failure
 
-![Prediction Screen]
+<img width="1879" height="775" alt="Screenshot 2025-07-14 235833" src="https://github.com/user-attachments/assets/81bd1319-efdb-4d53-a9d9-22d1aa4d3900" />
 <!-- Add a screenshot of your prediction screen here -->
 
 ## Development and Integration
