@@ -36,7 +36,6 @@ The application consists of three main components:
 2. **Flask Backend Server**: API endpoints for fetching and processing system data
 3. **LSTM AI Model**: Neural network for predicting potential system failures
 
-![System Architecture]
 <!-- Add a system architecture diagram here -->
 
 ## Technology Stack
