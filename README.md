@@ -133,10 +133,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contributors
 
-- [Sujal Pawar](https://github.com/sujal-pawar) - Full-Stack Developer
-- [Harshil Bohra](https://github.com/prof7turtle) - AI/ML Engineer
-- [Atharva Kuratkar](https://github.com/AtharvA89) - Full-Stack Developer
-- [Vishal Tamhane](https://github.com/vishal-tamhane) - Backend Developer
+
+- [Harshil Bohra](https://github.com/prof7turtle) 
+- [Atharva Kuratkar](https://github.com/AtharvA89)
+- [Vishal Tamhane](https://github.com/vishal-tamhane)
+- [Sujal Pawar](https://github.com/sujal-pawar)
 
 ## Acknowledgments
 
