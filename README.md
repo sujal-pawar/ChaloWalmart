@@ -38,7 +38,6 @@ The application consists of three main components:
 - **Backend**: Flask, Python
 - **AI/ML**: TensorFlow, LSTM neural networks
 - **Data Collection**: psutil, custom system metrics collection
-- **Deployment**: Docker support for containerized deployment
 
 ## Installation and Setup
 
