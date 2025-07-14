@@ -87,13 +87,6 @@ The application consists of three main components:
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5001
 
-### Alternative: Running with the combined script
-
-```bash
-# From the project root directory
-python run_app.py
-```
-
 ## Using the Application
 
 ### Dashboard Navigation
@@ -141,8 +134,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contributors
 
-- [Your Name](https://github.com/yourusername)
-- [Team Member](https://github.com/teammember)
+- [Sujal Pawar](https://github.com/sujal-pawar) - Full-Stack Developer
+- [Harshil Bohra](https://github.com/prof7turtle) - AI/ML Engineer
+- [Atharva Kuratkar](https://github.com/AtharvA89) - Full-Stack Developer
+- [Vishal Tamhane](https://github.com/vishal-tamhane) - Backend Developer
 
 ## Acknowledgments
 
