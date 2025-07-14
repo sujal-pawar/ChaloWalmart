@@ -1,4 +1,4 @@
-﻿# ServerPulse - Real-Time Server Monitoring with Failure Prediction
+﻿# ServerPulse - Server Monitoring & Failure Prediction
 
 <div align="center">
   <img src="./images/serverpulse.png" alt="ServerPulse Logo" width="550px" />
@@ -7,7 +7,7 @@
 
 ## Overview
 
-ServerPulse is a comprehensive server monitoring solution that combines real-time system metrics tracking with advanced failure prediction using LSTM neural networks. This application helps system administrators proactively manage server infrastructure by identifying potential failures before they occur.
+ServerPulse is a comprehensive real-time server monitoring solution that combines real-time system metrics tracking with advanced failure prediction using LSTM neural networks. This application helps system administrators proactively manage server infrastructure by identifying potential failures before they occur.
 
 ## Features
 
@@ -18,8 +18,15 @@ ServerPulse is a comprehensive server monitoring solution that combines real-tim
 - **Alert System**: Visual warnings when metrics exceed normal thresholds
 - **Responsive Design**: Works on desktop and mobile devices
 
-![Dashboard Screenshot]
 <!-- Add a screenshot of your main dashboard here -->
+<img width="1890" height="781" alt="Screenshot 2025-07-14 235746" src="https://github.com/user-attachments/assets/01001573-adb4-433b-8903-dacadfbdcf25" />
+<img width="1780" height="653" alt="Screenshot 2025-07-14 235813" src="https://github.com/user-attachments/assets/03a560f5-89d4-42ca-bbf6-5e4681e3fc46" />
+<img width="1799" height="746" alt="Screenshot 2025-07-14 235822" src="https://github.com/user-attachments/assets/3e32bad4-e5b7-47ca-8c18-00bf4da5195a" />
+
+<img width="1879" height="775" alt="Screenshot 2025-07-14 235833" src="https://github.com/user-attachments/assets/81bd1319-efdb-4d53-a9d9-22d1aa4d3900" />
+
+
+
 
 ## System Architecture
 
