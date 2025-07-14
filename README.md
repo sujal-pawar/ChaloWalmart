@@ -141,10 +141,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Walmart Spark-a-thon Hackathon Team
+- Walmart Sparkathon Hackathon Team
 - TensorFlow for machine learning framework
 - React and Flask communities for excellent documentation
 
 ---
 
-*This project was developed as part of the Walmart Spark-a-thon Hackathon 2025.*
+*This project was developed as part of the Walmart Sparkathon Hackathon 2025.*
