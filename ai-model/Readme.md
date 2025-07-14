@@ -115,4 +115,3 @@ The API will run at `http://127.0.0.1:5000/`.
 
 - The backend uses `psutil` to gather live system metrics.
 - The model expects a 10x10 sequence; adjust `SEQ_LENGTH` and `FEATURES` in both training and prediction code if you change this.
-- The frontend is a simple HTML/JS file for demonstration; you can build more advanced UIs as needed. 
