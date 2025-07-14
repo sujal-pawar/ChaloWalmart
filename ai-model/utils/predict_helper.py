@@ -64,12 +64,12 @@ def get_system_data_sequence():
             cpu = psutil.cpu_percent(interval=0.1)
             memory = psutil.virtual_memory().percent
             disk = psutil.disk_usage('/').percent
-            # Try to get temperature, fallback to 50 if not available
+            # Try to get temperature, fallback to random 45-55 if not available
             try:
                 temp = psutil.sensors_temperatures()
-                temperature = temp.get('coretemp', [{'current': 50}])[0]['current'] if temp else 50
+                temperature = temp.get('coretemp', [{'current': np.random.randint(45, 56)}])[0]['current'] if temp else np.random.randint(45, 56)
             except Exception:
-                temperature = 50
+                temperature = np.random.randint(45, 56)
             errors = np.random.randint(0, 5)
             response_time = np.random.uniform(100, 500)
             network = psutil.net_io_counters().bytes_sent / 1024
