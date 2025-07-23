@@ -155,3 +155,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 *This project was developed as part of the Walmart Sparkathon Hackathon 2025.*
+
+## Legal Notice
+This project was created with dedication by Team ServerPulse for Walmart Sparkathon Hackathon 2025. All rights reserved.
+
+Any unauthorized use, copying, modification, distribution, or piracy of this project or its content is strictly prohibited. Violators will be subject to legal action.
+© Team ServerPulse, 2025
